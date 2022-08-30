@@ -70,9 +70,7 @@ class AwsS3 {
 
       if (res.statusCode == 204) return '$endpoint/$uploadKey';
     } catch (e) {
-      print('Failed to upload to AWS, with exception:');
-      print(e);
-      return null;
+     rethrow;
     }
   }
 }
