@@ -13,7 +13,7 @@ import './src/policy.dart';
 /// Convenience class for uploading files to AWS S3
 class AwsS3 {
   /// Upload a file, returning the file's public URL on success.
-  static Future<String?> uploadFile({
+  static Future<String> uploadFile({
     /// AWS access key
     required String accessKey,
 
@@ -25,7 +25,7 @@ class AwsS3 {
 
     /// The file to upload
     required File file,
-    
+
     /// The key to save this file as. Will override destDir and filename if set.
     String? key,
 
@@ -50,10 +50,14 @@ class AwsS3 {
 
     final uri = Uri.parse(endpoint);
     final req = http.MultipartRequest("POST", uri);
-    final multipartFile = http.MultipartFile('file', stream, length, filename: path.basename(file.path));
+    final multipartFile = http.MultipartFile('file', stream, length,
+        filename: path.basename(file.path));
 
-    final policy = Policy.fromS3PresignedPost(uploadKey, bucket, accessKey, 15, length, acl, region: region);
-    final signingKey = SigV4.calculateSigningKey(secretKey, policy.datetime, region, 's3');
+    final policy = Policy.fromS3PresignedPost(
+        uploadKey, bucket, accessKey, 15, length, acl,
+        region: region);
+    final signingKey =
+        SigV4.calculateSigningKey(secretKey, policy.datetime, region, 's3');
     final signature = SigV4.calculateSignature(signingKey, policy.encode());
 
     req.files.add(multipartFile);
@@ -69,8 +73,10 @@ class AwsS3 {
       final res = await req.send();
 
       if (res.statusCode == 204) return '$endpoint/$uploadKey';
+
+      throw Exception('failed to stream data status_code: ${res.statusCode}');
     } catch (e) {
-     rethrow;
+      rethrow;
     }
   }
 }
